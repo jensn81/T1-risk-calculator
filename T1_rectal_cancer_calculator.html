@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T1 Rectal Cancer – cTME vs Surveillance Calculator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 15px; color: #1a1a1a; background: #f7f7f5; line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { font-size: 14px; color: #555; margin-bottom: 28px; }
+  h2 { font-size: 16px; font-weight: 700; margin-bottom: 14px; margin-top: 28px; border-bottom: 1.5px solid #d0d0d0; padding-bottom: 6px; }
+  h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #333; }
+  .section { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px 24px; margin-bottom: 20px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
+  .slider-row { margin-bottom: 14px; }
+  .slider-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .slider-label span { font-size: 13px; color: #333; }
+  .slider-label .val { font-size: 15px; font-weight: 700; color: #1a1a1a; min-width: 48px; text-align: right; }
+  .slider-ref { font-size: 11px; color: #888; margin-top: 2px; }
+  input[type=range] { width: 100%; height: 4px; accent-color: #444; cursor: pointer; }
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
+  @media (max-width: 600px) { .result-grid { grid-template-columns: 1fr; } }
+  .result-box { border-radius: 8px; padding: 16px 18px; }
+  .box-surv { background: #eaf3de; border: 1px solid #b0d080; }
+  .box-ctme { background: #faeeda; border: 1px solid #e0b060; }
+  .box-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+  .box-label.surv { color: #3b6d11; }
+  .box-label.ctme { color: #854f0b; }
+  .metric-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.08); font-size: 13px; }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-name { color: #444; }
+  .metric-val { font-weight: 700; font-size: 14px; }
+  .metric-val.good { color: #2a5f0e; }
+  .metric-val.warn { color: #7a4200; }
+  .metric-val.bad { color: #a02020; }
+  .total-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0 4px; margin-top: 4px; border-top: 2px solid rgba(0,0,0,0.15); }
+  .total-label { font-weight: 700; font-size: 14px; }
+  .total-val { font-weight: 700; font-size: 20px; }
+  .per100-wrap { margin-top: 20px; }
+  .dot-grid { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
+  .dot { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #555; margin-top: 6px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .verdict-box { border-radius: 8px; padding: 14px 18px; margin-top: 16px; background: #f0f0f0; border: 1px solid #ccc; font-size: 14px; line-height: 1.6; }
+  .highlight-diff { padding: 12px 16px; border-radius: 6px; background: #e8f0fb; border: 1px solid #aac4e8; font-size: 13px; margin-top: 12px; }
+  .tab-row { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
+  .tab { padding: 8px 20px; font-size: 14px; font-weight: 700; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; color: #888; background: none; border-top: none; border-left: none; border-right: none; }
+  .tab.active { color: #1a1a1a; border-bottom-color: #444; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .note { font-size: 12px; color: #777; font-style: italic; margin-top: 8px; }
+  select { font-size: 14px; padding: 5px 8px; border: 1px solid #ccc; border-radius: 5px; background: #fff; }
+  .age-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+  .age-row label { font-size: 13px; color: #333; }
+  .ref-list { font-size: 12px; color: #555; line-height: 1.8; }
+  .ref-list li { margin-bottom: 6px; }
+  .caveat { font-size: 12px; color: #888; background: #f5f5f3; border: 1px solid #e0e0d8; border-radius: 6px; padding: 10px 14px; margin-top: 16px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>T1 rectal cancer – cTME vs surveillance</h1>
+  <p class="subtitle">Interactive decision-support calculator · Adjust parameters and explore the consequences · Based on published evidence</p>
+
+  <div class="tab-row">
+    <button class="tab active" onclick="showTab('calculator')">Calculator</button>
+    <button class="tab" onclick="showTab('about')">About</button>
+    <button class="tab" onclick="showTab('references')">References</button>
+  </div>
+
+  <!-- TAB 1: CALCULATOR -->
+  <div id="tab-calculator" class="tab-content active">
+
+    <div class="section">
+      <h2 style="margin-top:0;">Patient and tumour profile</h2>
+      <div class="age-row">
+        <label>Patient age:</label>
+        <select id="age-group" onchange="calc()">
+          <option value="1.0">&lt; 60 years (mortality ×1.0)</option>
+          <option value="2.7" selected>60–69 years (mortality ×2.7)</option>
+          <option value="4.7">70–79 years (mortality ×4.7)</option>
+          <option value="6.7">≥ 80 years (mortality ×6.7)</option>
+        </select>
+        <span class="note">Waddison et al. 2011 – mortality gradient per decade</span>
+      </div>
+      <div class="age-row">
+        <label>Risk profile:</label>
+        <select id="risk-preset" onchange="applyPreset()">
+          <option value="dsi_alone">DSI alone (sole risk factor)</option>
+          <option value="low">Low risk (no risk factors)</option>
+          <option value="intermediate">Intermediate risk (1 risk factor)</option>
+          <option value="high">High risk (≥2 risk factors)</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="section">
+        <h3>Oncological risk estimates – surveillance</h3>
+        <div class="slider-row">
+          <div class="slider-label"><span>LNM risk</span><span class="val" id="v-lnm">2.6%</span></div>
+          <input type="range" id="lnm" min="0" max="30" step="0.1" value="2.6" oninput="calc()">
+          <div class="slider-ref">Zwager 2022 – DSI alone: 2.6% (n=1,146, 8 studies)</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Local recurrence rate (surveillance)</span><span class="val" id="v-lr-surv">8.0%</span></div>
+          <input type="range" id="lr-surv" min="0" max="30" step="0.1" value="8.0" oninput="calc()">
+          <div class="slider-ref">van Oostendorp 2020 – low/intermediate pT1 rectum: 6.7–13.6%</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Proportion of LR amenable to salvage</span><span class="val" id="v-salvage">75%</span></div>
+          <input type="range" id="salvage" min="40" max="100" step="1" value="75" oninput="calc()">
+          <div class="slider-ref">van Oostendorp 2020: 73–93% eligible for salvage surgery</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Direct distant metastases (without prior LR)</span><span class="val" id="v-dm">2.0%</span></div>
+          <input type="range" id="dm" min="0" max="10" step="0.1" value="2.0" oninput="calc()">
+          <div class="slider-ref">Ouchi 2024; Gijsbers 2024; van Oostendorp 2020 – identical in both groups</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Surgical parameters – cTME/APR</h3>
+        <div class="slider-row">
+          <div class="slider-label"><span>Baseline 30-day mortality (&lt;60 years)</span><span class="val" id="v-mort-base">1.5%</span></div>
+          <input type="range" id="mort-base" min="0.5" max="5" step="0.1" value="1.5" oninput="calc()">
+          <div class="slider-ref">Vermeer 2019: 1.7%; Chaouch 2021: 1.2% – Waddison 2011 for age gradient</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Local recurrence rate after cTME</span><span class="val" id="v-lr-ctme">4.1%</span></div>
+          <input type="range" id="lr-ctme" min="0" max="15" step="0.1" value="4.1" oninput="calc()">
+          <div class="slider-ref">van Oostendorp 2020: 4.1% (95%CI 1.7–9.4%) high-risk pT1</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Severe complications (Clavien-Dindo ≥III)</span><span class="val" id="v-morb">17.5%</span></div>
+          <input type="range" id="morb" min="5" max="50" step="0.5" value="17.5" oninput="calc()">
+          <div class="slider-ref">Vermeer 2019; Norwegian NPR data 2016–2025</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Permanent / long-term stoma</span><span class="val" id="v-stoma">33%</span></div>
+          <input type="range" id="stoma" min="5" max="70" step="1" value="33" oninput="calc()">
+          <div class="slider-ref">Norwegian NPR data: 26.7–39.6%</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Major LARS</span><span class="val" id="v-lars">41%</span></div>
+          <input type="range" id="lars" min="10" max="70" step="1" value="41" oninput="calc()">
+          <div class="slider-ref">Croese 2018 meta-analysis (n=11 studies): 41% (95%CI 34–48%)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <h2>Results per 100 treated patients</h2>
+
+    <div class="result-grid">
+      <div class="result-box box-surv">
+        <div class="box-label surv">Strategy A — structured surveillance</div>
+        <div class="metric-row"><span class="metric-name">Local recurrence (all)</span><span class="metric-val" id="r-surv-lr-all"></span></div>
+        <div class="metric-row"><span class="metric-name">Local recurrence – not salvageable</span><span class="metric-val warn" id="r-surv-lr-ns"></span></div>
+        <div class="metric-row"><span class="metric-name">Direct distant metastases</span><span class="metric-val warn" id="r-surv-dm"></span></div>
+        <div class="metric-row"><span class="metric-name">30-day mortality</span><span class="metric-val good" id="r-surv-mort"></span></div>
+        <div class="metric-row"><span class="metric-name">Severe morbidity</span><span class="metric-val good" id="r-surv-morb"></span></div>
+        <div class="metric-row"><span class="metric-name">Permanent stoma</span><span class="metric-val good" id="r-surv-stoma"></span></div>
+        <div class="metric-row"><span class="metric-name">Major LARS</span><span class="metric-val good" id="r-surv-lars"></span></div>
+        <div class="total-row">
+          <span class="total-label">Hard oncological events</span>
+          <span class="total-val" id="r-surv-total"></span>
+        </div>
+        <div class="note" style="margin-top:8px;">Hard events = non-salvageable LR + direct distant metastases</div>
+      </div>
+
+      <div class="result-box box-ctme">
+        <div class="box-label ctme">Strategy B — cTME/APR</div>
+        <div class="metric-row"><span class="metric-name">Local recurrence (all)</span><span class="metric-val" id="r-ctme-lr-all"></span></div>
+        <div class="metric-row"><span class="metric-name">Local recurrence – not salvageable</span><span class="metric-val warn" id="r-ctme-lr-ns"></span></div>
+        <div class="metric-row"><span class="metric-name">Direct distant metastases</span><span class="metric-val warn" id="r-ctme-dm"></span></div>
+        <div class="metric-row"><span class="metric-name">30-day mortality</span><span class="metric-val bad" id="r-ctme-mort"></span></div>
+        <div class="metric-row"><span class="metric-name">Severe morbidity</span><span class="metric-val bad" id="r-ctme-morb"></span></div>
+        <div class="metric-row"><span class="metric-name">Permanent stoma</span><span class="metric-val bad" id="r-ctme-stoma"></span></div>
+        <div class="metric-row"><span class="metric-name">Major LARS</span><span class="metric-val bad" id="r-ctme-lars"></span></div>
+        <div class="total-row">
+          <span class="total-label">Hard oncological events incl. 30-day mortality</span>
+          <span class="total-val" id="r-ctme-total"></span>
+        </div>
+        <div class="note" style="margin-top:8px;">Hard events = non-salvageable LR + distant metastases + 30-day mortality</div>
+      </div>
+    </div>
+
+    <div id="verdict" class="verdict-box" style="margin-top:16px;"></div>
+    <div class="highlight-diff" id="diff-box"></div>
+
+    <!-- PER 100 DOTS -->
+    <div class="per100-wrap section" style="margin-top:20px;">
+      <h3>Per 100 patients: operated without LNM in the specimen</h3>
+      <p style="font-size:13px; color:#555; margin-bottom:12px;">Of 100 patients undergoing cTME, <strong id="pct-no-lnm"></strong> have no lymph node metastases in the resection specimen. These patients are exposed to surgical burden without direct oncological benefit.</p>
+      <div id="dot-container" class="dot-grid"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="dot" style="background:#e24b4a;"></div> LNM in specimen (potential benefit)</div>
+        <div class="legend-item"><div class="dot" style="background:#ccc;"></div> No LNM – operated without necessity</div>
+      </div>
+    </div>
+
+    <div class="caveat">
+      This calculator is intended for educational purposes and to support multidisciplinary discussion. It does not replace individual clinical assessment, MDT evaluation, or shared decision-making with the patient. All parameter estimates carry uncertainty and should be interpreted in the context of the underlying evidence (see References tab).
+    </div>
+
+  </div>
+
+  <!-- TAB 2: ABOUT -->
+  <div id="tab-about" class="tab-content">
+    <div class="section">
+      <h2 style="margin-top:0;">About this calculator</h2>
+      <p style="font-size:14px; line-height:1.7; margin-bottom:12px;">This calculator compares two management strategies for T1 rectal cancer following local excision (EID/ESD/TEM/TAMIS): completion total mesorectal excision (cTME/APR) versus structured surveillance with a low threshold for salvage treatment.</p>
+      <p style="font-size:14px; line-height:1.7; margin-bottom:12px;">All default values are derived from published studies and meta-analyses. The default profile is <em>DSI alone</em> – the patient group in which the indication for cTME is most actively debated.</p>
+
+      <h3 style="margin-top:16px;">Risk presets</h3>
+      <ul style="font-size:13px; color:#444; line-height:2; padding-left:20px;">
+        <li><strong>DSI alone:</strong> LNM 2.6%, LR-surveillance 8%, DM 2% — Zwager 2022; van Oostendorp 2020</li>
+        <li><strong>Low risk:</strong> LNM 1%, LR-surveillance 6.7%, DM 1.5% — van Oostendorp 2020 low-risk pT1</li>
+        <li><strong>Intermediate (1 factor):</strong> LNM 8%, LR-surveillance 10%, DM 2.5%</li>
+        <li><strong>High risk (≥2 factors):</strong> LNM 20%, LR-surveillance 20%, DM 5% — van Oostendorp 2020 high-risk pT1</li>
+      </ul>
+
+      <h3 style="margin-top:16px;">Key assumptions</h3>
+      <ul style="font-size:13px; color:#555; line-height:2; padding-left:20px;">
+        <li>Distant metastases are assumed equal in both groups — supported by Ouchi 2024, Gijsbers 2024, van Oostendorp 2020</li>
+        <li>The age gradient for surgical mortality follows Waddison et al. 2011 (colorectal surgery, elective)</li>
+        <li>Salvage after cTME is not separately modelled (small group, lower probability of curative salvage)</li>
+        <li>Cancer-specific survival benefit of cTME is ~1.8 percentage points (Ouchi 2024) — not explicitly modelled but reflected in the LR/DM estimates</li>
+      </ul>
+
+      <h3 style="margin-top:16px;">Limitations</h3>
+      <ul style="font-size:13px; color:#555; line-height:2; padding-left:20px;">
+        <li>Simplified model — for illustration, not for individual clinical decisions</li>
+        <li>Does not incorporate rectal location as an independent risk factor for recurrence</li>
+        <li>Functional outcomes (LARS, stoma) are binary estimates — actual patient experience varies widely</li>
+        <li>All estimates carry confidence intervals — the calculator uses point estimates</li>
+      </ul>
+
+      <h3 style="margin-top:16px;">Context</h3>
+      <p style="font-size:13px; color:#555; line-height:1.8; margin-top:6px;">The calculator was developed as part of a review of the evidence base for the Norwegian national guidelines on T1 colorectal cancer management (2025–2026). It reflects a systematic assessment of the evidence supporting organ-preserving strategies in patients with deep submucosal invasion (DSI) as the sole histopathological risk factor.</p>
+    </div>
+  </div>
+
+  <!-- TAB 3: REFERENCES -->
+  <div id="tab-references" class="tab-content">
+    <div class="section">
+      <h2 style="margin-top:0;">References</h2>
+      <div class="ref-list">
+        <ol>
+          <li><strong>Zwager LW et al.</strong> Gastroenterology 2022. Deep submucosal invasion is not an independent risk factor for lymph node metastasis in T1 colorectal cancer: a meta-analysis. DOI: 10.1053/j.gastro.2022.04.010<br><em>DSI alone: LNM 2.6% (n=1,146, 8 studies). DSI multivariate OR 1.73 (95%CI 0.96–3.12, p=NS). LVI OR 3.16, tumour budding OR 2.83, poor differentiation OR 2.14.</em></li>
+          <li><strong>van Oostendorp SE et al.</strong> BJS 2020. Local recurrence after local excision of early rectal cancer: a meta-analysis of completion TME, adjuvant (chemo)radiation, or no additional treatment. DOI: 10.1002/bjs.12040<br><em>Low-risk pT1 NAT: LR 6.7%, DM 3.2%. High-risk pT1 NAT: LR 13.6%, DM 7.2%. cTME: LR 4.1%, DM 5.6%. Salvage eligible 73–93%.</em></li>
+          <li><strong>Ouchi A et al.</strong> Ann Surg 2024. How does omitting additional surgery after local excision affect the prognostic outcome of patients with high-risk T1 colorectal cancer? DOI: 10.1097/SLA.0000000000006092<br><em>PS-matched n=401 pairs. 5-year LR: 1.1% vs 4.1%. DM: 1.3% vs 1.8% (p=0.56). 5-year CSS: 99.7% vs 97.9% (p=0.048). OS difference confounded by comorbidity.</em></li>
+          <li><strong>Corre F et al.</strong> GIE 2023. Impact of surgery after endoscopically resected high-risk T1 CRC: results of an emulated target trial. DOI: 10.1016/j.gie.2023.09.027<br><em>n=197, 14 French centres, IPTW. Recurrence: 3.7% surgery vs 4.4% surveillance. wHR 0.95 (95%CI 0.52–1.75), NS.</em></li>
+          <li><strong>Gijsbers K et al.</strong> ESGE Days 2024 (conference abstract, under peer review). n=3,812, 21 Dutch hospitals.<br><em>69.7% of distant metastases after surgery in pN0 patients. 3-year AFS high-risk: 96.0% vs 95.6%, HR 0.93 (NS). DSI not included as independent predictor of DM.</em></li>
+          <li><strong>Rönnow CF et al.</strong> Ann Surg 2022. Lymphovascular infiltration, not depth of invasion, is the critical risk factor of metastases in early colorectal cancer. DOI: 10.1097/SLA.0000000000003854<br><em>n=1,439, exclusively non-pedunculated lesions, Danish validation cohort, multiple imputation. DSI p=0.075 (NS). LVI OR 7.3 (p&lt;0.001).</em></li>
+          <li><strong>Nilsson J et al.</strong> BJS Open 2024. Swedish national registry, T1 colon cancer, n=1,805. DOI: 10.1093/bjsopen/zrae053<br><em>Recurrence: Sm1 3.7% / Sm2 3.8% / Sm3 3.2% (NS). LVI HR 3.73. 5-year DFI: 95.6% vs 96.2% (NS).</em></li>
+          <li><strong>Kajiwara Y et al.</strong> GIE 2023. Nomogram as a novel predictive tool for LNM in T1 CRC. DOI: 10.1016/j.gie.2023.01.022<br><em>n=4,673, 27 Japanese centres. DSI ≥2000 µm OR ~4.3. Limitation: ~23.5% missing key variables, complete-case analysis only, no multiple imputation.</em></li>
+          <li><strong>Vermeer NCA et al.</strong> BJS Open 2019. National cohort study on postoperative risks after surgery for submucosal invasive colorectal cancer (DCRA, n=5,170). DOI: 10.1002/bjs5.50125<br><em>30-day surgical mortality 1.7%. Severe morbidity 8.3% – comparable to pT2–3 disease.</em></li>
+          <li><strong>Chaouch MA et al.</strong> Meta-analysis 2021. Surgical mortality cTME: 1.2% (95%CI 0.6–2.4%). Morbidity 36% (32–40%).</li>
+          <li><strong>Nikberg M et al. (HAPIrect RCT).</strong> BJS Open. Hartmann's procedure vs intersphincteric APE, n=163 randomised. NCT01995396.<br><em>Overall complication rate 45–49%. No significant difference between techniques.</em></li>
+          <li><strong>Croese AD et al.</strong> Int J Surg 2018. Meta-analysis of the prevalence of Low Anterior Resection Syndrome. DOI: 10.1016/j.ijsu.2018.06.031<br><em>Major LARS: 41% (95%CI 34–48%). Low anastomotic height and radiotherapy are the strongest risk factors.</em></li>
+          <li><strong>Waddison B et al.</strong> Ann R Coll Surg Engl 2011. The impact of age on outcome after surgery for colorectal adenocarcinoma (n=459). DOI: 10.1308/003588411x587154<br><em>30-day mortality: 1% (&lt;59 years), +3 percentage points per decade. Cancer-specific survival independent of age.</em></li>
+          <li><strong>Norwegian NPR data 2016–2025</strong> (under publication). n=299 major rectal resections for benign rectal lesions.<br><em>90-day complications 39.1%, reoperation 11.7%, 90-day mortality 2.0%, stoma 26.7% (62.5% reversed within 6 months).</em></li>
+          <li><strong>van der Schee L et al.</strong> GUT 2025. Prospective cohort, n=188 EID (2019–2023).<br><em>All recurrences in low/intermediate risk group were salvageable. 0% cancer-related mortality at 3 years.</em></li>
+          <li><strong>Dekkers N et al.</strong> Surg Endosc 2022 (PMID 35773606). Meta-analysis, pT1 rectal cancer, n=2,585.<br><em>High-risk pT1 recurrence: flexible endoscopy 12.5% vs TEM/TAMIS 29.7%. Low-risk: 3.1% vs 5.9%.</em></li>
+        </ol>
+      </div>
+      <p style="font-size:12px; color:#888; margin-top:16px;">This calculator was developed for academic and multidisciplinary guideline discussions. It does not constitute clinical advice and should not be applied without individualised patient assessment.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showTab(id) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  const presets = {
+    dsi_alone:    { lnm: 2.6, lrSurv: 8.0, salvage: 75, dm: 2.0 },
+    low:          { lnm: 1.0, lrSurv: 6.7, salvage: 80, dm: 1.5 },
+    intermediate: { lnm: 8.0, lrSurv: 10.0, salvage: 70, dm: 2.5 },
+    high:         { lnm: 20.0, lrSurv: 20.0, salvage: 60, dm: 5.0 }
+  };
+
+  function applyPreset() {
+    const p = document.getElementById('risk-preset').value;
+    if (p === 'custom') { calc(); return; }
+    const v = presets[p];
+    setSlider('lnm', v.lnm);
+    setSlider('lr-surv', v.lrSurv);
+    setSlider('salvage', v.salvage);
+    setSlider('dm', v.dm);
+    calc();
+  }
+
+  function setSlider(id, val) {
+    document.getElementById(id).value = val;
+  }
+
+  function getVal(id) { return parseFloat(document.getElementById(id).value); }
+  function fmt(n, d=1) { return n.toFixed(d); }
+
+  function calc() {
+    const lnm = getVal('lnm');
+    const lrSurv = getVal('lr-surv');
+    const salvage = getVal('salvage') / 100;
+    const dm = getVal('dm');
+    const mortBase = getVal('mort-base');
+    const lrCtme = getVal('lr-ctme');
+    const morb = getVal('morb');
+    const stoma = getVal('stoma');
+    const lars = getVal('lars');
+    const ageMult = parseFloat(document.getElementById('age-group').value);
+
+    document.getElementById('v-lnm').textContent = fmt(lnm) + '%';
+    document.getElementById('v-lr-surv').textContent = fmt(lrSurv) + '%';
+    document.getElementById('v-salvage').textContent = Math.round(getVal('salvage')) + '%';
+    document.getElementById('v-dm').textContent = fmt(dm) + '%';
+    document.getElementById('v-mort-base').textContent = fmt(mortBase) + '%';
+    document.getElementById('v-lr-ctme').textContent = fmt(lrCtme) + '%';
+    document.getElementById('v-morb').textContent = fmt(morb) + '%';
+    document.getElementById('v-stoma').textContent = Math.round(stoma) + '%';
+    document.getElementById('v-lars').textContent = Math.round(lars) + '%';
+
+    const lrSurvNS = lrSurv * (1 - salvage);
+    const survHard = lrSurvNS + dm;
+
+    const mort = Math.min(mortBase * ageMult, 20);
+    const lrCtmeNS = lrCtme * (1 - salvage);
+    const ctmeHard = lrCtmeNS + dm + mort;
+
+    const diff = ctmeHard - survHard;
+
+    document.getElementById('r-surv-lr-all').textContent = fmt(lrSurv) + ' of 100';
+    document.getElementById('r-surv-lr-ns').textContent = fmt(lrSurvNS) + ' of 100';
+    document.getElementById('r-surv-dm').textContent = fmt(dm) + ' of 100';
+    document.getElementById('r-surv-mort').textContent = '0 of 100';
+    document.getElementById('r-surv-morb').textContent = '0 of 100';
+    document.getElementById('r-surv-stoma').textContent = '0 of 100';
+    document.getElementById('r-surv-lars').textContent = '0 of 100';
+    document.getElementById('r-surv-total').textContent = fmt(survHard) + ' / 100';
+
+    document.getElementById('r-ctme-lr-all').textContent = fmt(lrCtme) + ' of 100';
+    document.getElementById('r-ctme-lr-ns').textContent = fmt(lrCtmeNS) + ' of 100';
+    document.getElementById('r-ctme-dm').textContent = fmt(dm) + ' of 100';
+    document.getElementById('r-ctme-mort').textContent = fmt(mort) + ' of 100';
+    document.getElementById('r-ctme-morb').textContent = fmt(morb) + ' of 100';
+    document.getElementById('r-ctme-stoma').textContent = fmt(stoma) + ' of 100';
+    document.getElementById('r-ctme-lars').textContent = fmt(lars) + ' of 100';
+    document.getElementById('r-ctme-total').textContent = fmt(ctmeHard) + ' / 100';
+
+    const verdictEl = document.getElementById('verdict');
+    const diffEl = document.getElementById('diff-box');
+
+    if (diff > 0.5) {
+      verdictEl.style.background = '#eaf3de';
+      verdictEl.style.border = '1px solid #b0d080';
+      verdictEl.innerHTML = '<strong>Surveillance is favourable</strong> at these parameter values. Structured surveillance results in fewer hard oncological events than cTME (' + fmt(survHard,1) + ' vs ' + fmt(ctmeHard,1) + ' per 100), and avoids surgical burden in the ' + fmt(100-lnm,1) + ' of 100 patients without LNM.';
+      diffEl.innerHTML = 'Surgery results in <strong>' + fmt(Math.abs(diff),1) + ' additional</strong> hard events per 100 patients compared to surveillance at these settings. Proportion operated without LNM in the specimen: <strong>' + fmt(100-lnm,1) + '%</strong>.';
+    } else if (diff < -0.5) {
+      verdictEl.style.background = '#faeeda';
+      verdictEl.style.border = '1px solid #e0b060';
+      verdictEl.innerHTML = '<strong>cTME may be considered</strong> at these parameter values. Surgery results in fewer hard oncological events than surveillance (' + fmt(ctmeHard,1) + ' vs ' + fmt(survHard,1) + ' per 100). Weigh against surgical burden: ' + fmt(morb,1) + '% severe morbidity, ' + fmt(stoma,1) + '% permanent stoma, ' + fmt(lars,1) + '% major LARS.';
+      diffEl.innerHTML = 'Surveillance results in <strong>' + fmt(Math.abs(diff),1) + ' additional</strong> hard events per 100 patients compared to cTME at these settings. Note: distant metastases are equal in both groups regardless of parameter settings.';
+    } else {
+      verdictEl.style.background = '#f0f0f0';
+      verdictEl.style.border = '1px solid #ccc';
+      verdictEl.innerHTML = '<strong>Approximately equivalent oncological outcomes</strong> at these parameter values (' + fmt(survHard,1) + ' vs ' + fmt(ctmeHard,1) + ' hard events per 100). The decision should be guided by patient age, comorbidity, functional priorities, and shared decision-making.';
+      diffEl.innerHTML = 'The difference in hard oncological events is &lt;0.5 per 100 patients. Surgical burden (stoma ' + fmt(stoma,1) + '%, LARS ' + fmt(lars,1) + '%, severe morbidity ' + fmt(morb,1) + '%) should weigh heavily in the shared decision-making conversation.';
+    }
+
+    const pctNoLnm = 100 - lnm;
+    document.getElementById('pct-no-lnm').textContent = fmt(pctNoLnm,1) + '%';
+    const container = document.getElementById('dot-container');
+    container.innerHTML = '';
+    for (let i = 0; i < 100; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      dot.style.background = i < Math.round(lnm) ? '#e24b4a' : '#ddd';
+      container.appendChild(dot);
+    }
+  }
+
+  calc();
+</script>
+</body>
+</html>
